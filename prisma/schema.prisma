@@ -1,0 +1,164 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// 상품 카테고리
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  order     Int       @default(0)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// 상품
+model Product {
+  id           String              @id @default(cuid())
+  name         String
+  description  String?
+  imageUrl     String?
+  isActive     Boolean             @default(true)
+  isBestSeller Boolean             @default(false)
+  isSale       Boolean             @default(false)
+  order        Int                 @default(0)
+  category     Category            @relation(fields: [categoryId], references: [id])
+  categoryId   String
+  options      ProductOption[]
+  orderItems   OrderItem[]
+  dealProducts DealEventProduct[]
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+}
+
+// 상품 옵션 (브랜드/규격별 가격 구분)
+model ProductOption {
+  id            String      @id @default(cuid())
+  name          String
+  originalPrice Int
+  salePrice     Int
+  discountRate  Int         @default(0)
+  stock         Int         @default(9999)
+  isDefault     Boolean     @default(false)
+  product       Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId     String
+  orderItems    OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+// 특가 이벤트 (기업별 특가 관리)
+model DealEvent {
+  id           String             @id @default(cuid())
+  title        String
+  subtitle     String?
+  bannerImage  String?
+  isActive     Boolean            @default(true)
+  startDate    DateTime?
+  endDate      DateTime?
+  dealProducts DealEventProduct[]
+  orders       Order[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+}
+
+// 특가 이벤트 ↔ 상품 매핑 (다대다)
+model DealEventProduct {
+  id          String    @id @default(cuid())
+  dealEvent   DealEvent @relation(fields: [dealEventId], references: [id], onDelete: Cascade)
+  dealEventId String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId   String
+  createdAt   DateTime  @default(now())
+
+  @@unique([dealEventId, productId])
+}
+
+// 주문
+model Order {
+  id                    String      @id @default(cuid())
+  orderNumber           String      @unique
+  
+  // 주문자 정보
+  ordererName           String
+  ordererPhone          String
+  ordererZipCode        String
+  ordererAddress        String
+  ordererAddressDetail  String?
+  orderPassword         String
+  
+  // 배송 정보
+  receiverName          String
+  receiverPhone         String
+  receiverZipCode       String
+  receiverAddress       String
+  receiverAddressDetail String?
+  shippingMemo          String?
+  
+  // 결제 정보
+  totalAmount           Int
+  paymentMethod         String      @default("BANK_TRANSFER")
+  depositorName         String?
+  
+  // 개인정보 동의
+  privacyConsent        Boolean     @default(false)
+  
+  // 현금영수증
+  cashReceiptType       String      @default("NONE")
+  cashReceiptPhone      String?
+  businessNumber        String?
+  
+  // 배송 추적
+  trackingNo            String?
+  courier               String?
+  
+  // 상태: PENDING, PAID, PREPARING, SHIPPED, DELIVERED, CANCELLED
+  status                String      @default("PENDING")
+  
+  // 관계
+  dealEvent             DealEvent?  @relation(fields: [dealEventId], references: [id])
+  dealEventId           String?
+  items                 OrderItem[]
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+}
+
+// 주문 상품 항목
+model OrderItem {
+  id              String        @id @default(cuid())
+  quantity        Int
+  unitPrice       Int
+  totalPrice      Int
+  productName     String
+  optionName      String
+  order           Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId         String
+  product         Product       @relation(fields: [productId], references: [id])
+  productId       String
+  productOption   ProductOption @relation(fields: [productOptionId], references: [id])
+  productOptionId String
+  createdAt       DateTime      @default(now())
+}
+
+// 관리자
+model Admin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 사이트 설정
+model SiteSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
