@@ -166,6 +166,7 @@ model Partner {
   logoText    String?
   logoSubtext String?
   bannerImage String?
+  accessCode  String?
   isActive    Boolean  @default(true)
   
   overrides   PartnerProductOverride[]

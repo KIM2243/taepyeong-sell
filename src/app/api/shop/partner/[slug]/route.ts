@@ -24,6 +24,25 @@ export async function GET(req: NextRequest, { params }: { params: { slug: string
       return NextResponse.json({ error: 'Partner not found or inactive' }, { status: 404 });
     }
 
+    if (partner.accessCode) {
+      const { cookies } = require('next/headers');
+      const hasAccess = cookies().get(`partner_access_${params.slug}`);
+      
+      if (!hasAccess || hasAccess.value !== 'true') {
+        return NextResponse.json({
+          authRequired: true,
+          partner: {
+            id: partner.id,
+            name: partner.name,
+            slug: partner.slug,
+            logoText: partner.logoText,
+            logoSubtext: partner.logoSubtext,
+            bannerImage: partner.bannerImage
+          }
+        });
+      }
+    }
+
     // Transform products to apply overrides
     const products = partner.overrides.map((ov) => {
       const p = ov.product;

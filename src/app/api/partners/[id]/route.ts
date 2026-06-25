@@ -44,6 +44,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         logoText: body.logoText,
         logoSubtext: body.logoSubtext,
         bannerImage: body.bannerImage,
+        accessCode: body.accessCode,
         isActive: body.isActive,
       }
     });

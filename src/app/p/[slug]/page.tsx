@@ -26,6 +26,9 @@ export default function PartnerStorefrontPage({ params }: { params: { slug: stri
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<any>({});
+  const [authRequired, setAuthRequired] = useState(false);
+  const [accessCode, setAccessCode] = useState('');
+  const [authError, setAuthError] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -48,6 +51,13 @@ export default function PartnerStorefrontPage({ params }: { params: { slug: stri
         throw new Error('Failed to load partner data');
       }
       const data = await partnerRes.json();
+      
+      if (data.authRequired) {
+        setAuthRequired(true);
+        setPartner(data.partner);
+        return;
+      }
+      
       setPartner(data.partner);
       setProducts(data.products);
       setSettings(await settingsRes.json());
@@ -133,6 +143,62 @@ export default function PartnerStorefrontPage({ params }: { params: { slug: stri
   }
 
   if (!partner) return null;
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    try {
+      const res = await fetch(`/api/shop/partner/${params.slug}/auth`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAuthError(data.error || '인증에 실패했습니다.');
+        return;
+      }
+      setLoading(true);
+      setAuthRequired(false);
+      loadData();
+    } catch {
+      setAuthError('인증 중 오류가 발생했습니다.');
+    }
+  };
+
+  if (authRequired) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: 'var(--slate-50)' }}>
+        <div style={{ background: 'white', padding: '40px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
+          {partner?.bannerImage ? (
+            <img src={partner.bannerImage} alt="logo" style={{ maxHeight: 60, marginBottom: 24, objectFit: 'contain' }} />
+          ) : (
+            <div style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 24, color: 'var(--primary)' }}>
+              {partner?.logoText || partner?.name} <span style={{ fontSize: 16, color: 'var(--slate-500)', fontWeight: 'normal' }}>{partner?.logoSubtext || '전용몰'}</span>
+            </div>
+          )}
+          
+          <h2 style={{ fontSize: 18, marginBottom: 8 }}>접속 비밀번호를 입력해주세요</h2>
+          <p style={{ fontSize: 14, color: 'var(--slate-500)', marginBottom: 24 }}>이 사이트는 지정된 임직원 및 관계자만 접속 가능합니다.</p>
+          
+          <form onSubmit={handleAuth}>
+            <input
+              type="password"
+              placeholder="비밀번호"
+              className="admin-form-input"
+              value={accessCode}
+              onChange={(e) => setAccessCode(e.target.value)}
+              style={{ width: '100%', marginBottom: 16, padding: '12px', fontSize: 16, textAlign: 'center' }}
+            />
+            {authError && <div style={{ color: 'var(--red-500)', fontSize: 14, marginBottom: 16 }}>{authError}</div>}
+            <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '12px', fontSize: 16, justifyContent: 'center' }}>
+              접속하기
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

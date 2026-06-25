@@ -166,6 +166,13 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
           <input className="admin-form-input" value={partner.logoSubtext || ''} onChange={e => handleUpdatePartnerInfo('logoSubtext', e.target.value)} placeholder="예: 임직원 전용" />
         </div>
         <div className="admin-form-row">
+          <label className="admin-form-label">파트너몰 접속 암호(Access Code)</label>
+          <input className="admin-form-input" value={partner.accessCode || ''} onChange={e => handleUpdatePartnerInfo('accessCode', e.target.value)} placeholder="비워둘 시 누구나 접속 가능 (예: samsung123)" />
+          <p className="form-hint" style={{ marginTop: 4 }}>
+            암호를 설정하면, 파트너몰 접속 시 해당 암호를 입력해야만 상품을 볼 수 있습니다.
+          </p>
+        </div>
+        <div className="admin-form-row">
           <label className="admin-form-label">메인 배너 이미지</label>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
             {partner.bannerImage && (
