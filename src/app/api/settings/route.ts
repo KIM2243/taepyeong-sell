@@ -23,13 +23,15 @@ export async function PUT(req: NextRequest) {
     // body = { key: value, key: value, ... }
     const entries = Object.entries(body);
 
-    for (const [key, value] of entries) {
-      await prisma.siteSetting.upsert({
-        where: { key },
-        update: { value: String(value) },
-        create: { key, value: String(value) },
-      });
-    }
+    await prisma.$transaction(
+      entries.map(([key, value]) =>
+        prisma.siteSetting.upsert({
+          where: { key },
+          update: { value: String(value) },
+          create: { key, value: String(value) },
+        })
+      )
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {
