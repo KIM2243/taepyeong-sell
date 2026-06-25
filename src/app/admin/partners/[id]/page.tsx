@@ -173,6 +173,19 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
           </p>
         </div>
         <div className="admin-form-row">
+          <label className="admin-form-label">파트너몰 접속 유지 기간</label>
+          <select className="admin-form-select" value={partner.accessDuration ?? 30} onChange={e => handleUpdatePartnerInfo('accessDuration', parseInt(e.target.value))}>
+            <option value={0}>브라우저 종료 시 만료 (보안 높음)</option>
+            <option value={1}>1일</option>
+            <option value={7}>7일</option>
+            <option value={30}>30일 (기본)</option>
+            <option value={365}>365일 (1년)</option>
+          </select>
+          <p className="form-hint" style={{ marginTop: 4 }}>
+            한 번 암호를 입력한 후 얼마 동안 접속 상태를 유지할지 설정합니다.
+          </p>
+        </div>
+        <div className="admin-form-row">
           <label className="admin-form-label">메인 배너 이미지</label>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
             {partner.bannerImage && (

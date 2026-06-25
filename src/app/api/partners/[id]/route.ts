@@ -45,6 +45,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         logoSubtext: body.logoSubtext,
         bannerImage: body.bannerImage,
         accessCode: body.accessCode,
+        accessDuration: typeof body.accessDuration === 'number' ? body.accessDuration : undefined,
         isActive: body.isActive,
       }
     });

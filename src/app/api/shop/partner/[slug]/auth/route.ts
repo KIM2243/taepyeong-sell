@@ -8,7 +8,7 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
 
     const partner = await prisma.partner.findUnique({
       where: { slug: params.slug },
-      select: { accessCode: true, isActive: true }
+      select: { accessCode: true, isActive: true, accessDuration: true }
     });
 
     if (!partner || !partner.isActive) {
@@ -24,13 +24,18 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
     }
 
     // Set cookie
-    cookies().set(`partner_access_${params.slug}`, 'true', {
+    const cookieOptions: any = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 30 // 30 days
-    });
+      path: '/'
+    };
+
+    if (partner.accessDuration && partner.accessDuration > 0) {
+      cookieOptions.maxAge = 60 * 60 * 24 * partner.accessDuration;
+    }
+
+    cookies().set(`partner_access_${params.slug}`, 'true', cookieOptions);
 
     return NextResponse.json({ success: true });
   } catch (error) {
