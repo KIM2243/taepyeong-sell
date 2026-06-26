@@ -435,7 +435,7 @@ function ProductCard({
       className={`product-card ${isInCart ? 'selected' : ''}`}
       onClick={onClick}
     >
-      <div className="product-card-image" style={{ position: 'relative', width: '100%', aspectRatio: '4/3', overflow: 'hidden' }}>
+      <div className="product-card-image" style={{ position: 'relative', width: '100%', aspectRatio: '1/1', overflow: 'hidden' }}>
         {product.imageUrl ? (
           <img src={product.imageUrl} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
