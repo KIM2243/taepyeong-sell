@@ -37,6 +37,7 @@ model Product {
   isActive     Boolean             @default(true) // From taepyeong-sell
   isBestSeller Boolean             @default(false) // From taepyeong-sell
   isSale       Boolean             @default(false) // From taepyeong-sell
+  isFreeShipping Boolean           @default(false) // From taepyeong-sell
   order        Int                 @default(0)
   category     Category            @relation(fields: [categoryId], references: [id])
   categoryId   String

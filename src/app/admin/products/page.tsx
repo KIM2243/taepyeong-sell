@@ -22,6 +22,7 @@ interface Product {
   isActive: boolean;
   isBestSeller: boolean;
   isSale: boolean;
+  isFreeShipping: boolean;
   order: number;
   categoryId: string;
   options: ProductOption[];
@@ -50,6 +51,7 @@ export default function AdminProductsPage() {
   const [formIsActive, setFormIsActive] = useState(true);
   const [formIsBestSeller, setFormIsBestSeller] = useState(false);
   const [formIsSale, setFormIsSale] = useState(false);
+  const [formIsFreeShipping, setFormIsFreeShipping] = useState(false);
   const [formOrder, setFormOrder] = useState(0);
   const [formGlobalPrice, setFormGlobalPrice] = useState<number>(0);
   const [formOptionId, setFormOptionId] = useState<string | undefined>(undefined);
@@ -87,6 +89,7 @@ export default function AdminProductsPage() {
     setFormIsActive(true);
     setFormIsBestSeller(false);
     setFormIsSale(false);
+    setFormIsFreeShipping(false);
     setFormOrder(0);
     setFormGlobalPrice(0);
     setFormOptionId(undefined);
@@ -102,6 +105,7 @@ export default function AdminProductsPage() {
     setFormIsActive(product.isActive);
     setFormIsBestSeller(product.isBestSeller);
     setFormIsSale(product.isSale);
+    setFormIsFreeShipping(product.isFreeShipping ?? false);
     setFormOrder(product.order);
     const defaultOpt = product.options?.find((o: any) => o.isDefault) || product.options?.[0];
     setFormGlobalPrice(defaultOpt?.originalPrice || 0);
@@ -148,6 +152,7 @@ export default function AdminProductsPage() {
       isActive: formIsActive,
       isBestSeller: formIsBestSeller,
       isSale: formIsSale,
+      isFreeShipping: formIsFreeShipping,
       order: formOrder,
       options: [
         {
@@ -267,7 +272,10 @@ export default function AdminProductsPage() {
                       <span className="status-badge paid" style={{ marginRight: 4 }}>BEST</span>
                     )}
                     {product.isSale && (
-                      <span className="status-badge pending">SALE</span>
+                      <span className="status-badge pending" style={{ marginRight: 4 }}>SALE</span>
+                    )}
+                    {product.isFreeShipping && (
+                      <span className="status-badge" style={{ background: '#3b82f6', color: 'white' }}>무료배송</span>
                     )}
                   </td>
                   <td>
@@ -370,6 +378,11 @@ export default function AdminProductsPage() {
                   <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--slate-600)' }}>SALE 뱃지 표시</span>
                   <div className={`toggle-switch ${formIsSale ? 'active' : ''}`}
                     onClick={() => setFormIsSale(!formIsSale)} />
+                </label>
+                <label className="admin-form-toggle" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--slate-600)' }}>무료배송 뱃지</span>
+                  <div className={`toggle-switch ${formIsFreeShipping ? 'active' : ''}`}
+                    onClick={() => setFormIsFreeShipping(!formIsFreeShipping)} />
                 </label>
               </div>
             </div>
