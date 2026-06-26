@@ -429,7 +429,7 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
         <div className="modal-overlay">
           <div className="modal" style={{ maxWidth: 600, width: '90%', background: '#ffffff', padding: '24px', borderRadius: '16px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--slate-200)', paddingBottom: '16px', marginBottom: '24px' }}>
-              <h3 className="modal-title" style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>단가 설정 (옵션별)</h3>
+              <h3 style={{ margin: 0 }}>단가 설정 (옵션별)</h3>
               <button onClick={() => { setEditingOverride(null); setTempOverride(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--slate-400)' }}>
                 <X size={24} />
               </button>
