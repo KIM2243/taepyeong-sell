@@ -37,7 +37,11 @@ export async function GET(req: NextRequest, { params }: { params: { slug: string
             slug: partner.slug,
             logoText: partner.logoText,
             logoSubtext: partner.logoSubtext,
-            bannerImage: partner.bannerImage
+            logoImageUrl: partner.logoImageUrl,
+            bannerImage: partner.bannerImage,
+            bannerTitle: partner.bannerTitle,
+            bannerSubtitle: partner.bannerSubtitle,
+            cartTitle: partner.cartTitle
           }
         });
       }
@@ -83,7 +87,11 @@ export async function GET(req: NextRequest, { params }: { params: { slug: string
         slug: partner.slug,
         logoText: partner.logoText,
         logoSubtext: partner.logoSubtext,
-        bannerImage: partner.bannerImage
+        logoImageUrl: partner.logoImageUrl,
+        bannerImage: partner.bannerImage,
+        bannerTitle: partner.bannerTitle,
+        bannerSubtitle: partner.bannerSubtitle,
+        cartTitle: partner.cartTitle
       },
       products
     });

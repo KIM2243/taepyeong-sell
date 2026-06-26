@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Save, ChevronLeft, Image as ImageIcon, Plus, Trash2, Edit2, X } from 'lucide-react';
+import { Save, ChevronLeft, Image as ImageIcon, Plus, Trash2, Edit2, X, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminPartnerDetailPage({ params }: { params: { id: string } }) {
@@ -107,7 +107,7 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, fieldName: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const formData = new FormData();
@@ -115,7 +115,7 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
     try {
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
       const data = await res.json();
-      handleUpdatePartnerInfo('bannerImage', data.url);
+      handleUpdatePartnerInfo(fieldName, data.url);
     } catch {
       alert('업로드 실패');
     }
@@ -153,51 +153,198 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
 
       <div className="admin-form-card" style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h3 style={{ margin: 0 }}>기본 설정 (로고/배너)</h3>
+          <h3 style={{ margin: 0 }}>UI 커스텀 및 기본 설정</h3>
           <button className="btn btn-primary" onClick={handleSaveInfo} disabled={saving}><Save size={14} /> 저장</button>
         </div>
 
-        <div className="admin-form-row">
-          <label className="admin-form-label">로고 텍스트</label>
-          <input className="admin-form-input" value={partner.logoText || ''} onChange={e => handleUpdatePartnerInfo('logoText', e.target.value)} placeholder="예: 삼성전자특가몰" />
-        </div>
-        <div className="admin-form-row">
-          <label className="admin-form-label">로고 서브텍스트</label>
-          <input className="admin-form-input" value={partner.logoSubtext || ''} onChange={e => handleUpdatePartnerInfo('logoSubtext', e.target.value)} placeholder="예: 임직원 전용" />
-        </div>
-        <div className="admin-form-row">
-          <label className="admin-form-label">파트너몰 접속 암호(Access Code)</label>
-          <input className="admin-form-input" value={partner.accessCode || ''} onChange={e => handleUpdatePartnerInfo('accessCode', e.target.value)} placeholder="비워둘 시 누구나 접속 가능 (예: samsung123)" />
-          <p className="form-hint" style={{ marginTop: 4 }}>
-            암호를 설정하면, 파트너몰 접속 시 해당 암호를 입력해야만 상품을 볼 수 있습니다.
-          </p>
-        </div>
-        <div className="admin-form-row">
-          <label className="admin-form-label">파트너몰 접속 유지 기간</label>
-          <select className="admin-form-select" value={partner.accessDuration ?? 30} onChange={e => handleUpdatePartnerInfo('accessDuration', parseInt(e.target.value))}>
-            <option value={0}>브라우저 종료 시 만료 (보안 높음)</option>
-            <option value={1}>1일</option>
-            <option value={7}>7일</option>
-            <option value={30}>30일 (기본)</option>
-            <option value={365}>365일 (1년)</option>
-          </select>
-          <p className="form-hint" style={{ marginTop: 4 }}>
-            한 번 암호를 입력한 후 얼마 동안 접속 상태를 유지할지 설정합니다.
-          </p>
-        </div>
-        <div className="admin-form-row">
-          <label className="admin-form-label">메인 배너 이미지</label>
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-            {partner.bannerImage && (
-              <img src={partner.bannerImage} alt="배너" style={{ height: 100, border: '1px solid var(--border)' }} />
-            )}
-            <label className="btn btn-secondary" style={{ cursor: 'pointer' }}>
-              <ImageIcon size={14} /> 업로드
-              <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageUpload} />
-            </label>
-            {partner.bannerImage && (
-              <button className="btn btn-secondary" onClick={() => handleUpdatePartnerInfo('bannerImage', null)}>삭제</button>
-            )}
+        <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-start' }}>
+          {/* Left: Input Form */}
+          <div style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            
+            {/* 구역 A */}
+            <div style={{ padding: '16px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--slate-50)' }}>
+              <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: 'var(--slate-700)' }}>[영역 A] 좌측 상단 로고 (GNB)</h4>
+              
+              <div className="admin-form-row" style={{ marginBottom: '12px' }}>
+                <label className="admin-form-label" style={{ fontSize: '0.8rem' }}>로고 이미지 (기본 'P' 아이콘 대체)</label>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  {partner.logoImageUrl && (
+                    <img src={partner.logoImageUrl} alt="로고" style={{ height: 40, border: '1px solid var(--border)', borderRadius: '4px' }} />
+                  )}
+                  <label className="btn btn-secondary" style={{ cursor: 'pointer', padding: '4px 8px', fontSize: '0.8rem' }}>
+                    <ImageIcon size={12} /> 업로드
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleImageUpload(e, 'logoImageUrl')} />
+                  </label>
+                  {partner.logoImageUrl && (
+                    <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => handleUpdatePartnerInfo('logoImageUrl', null)}>삭제</button>
+                  )}
+                </div>
+              </div>
+
+              <div className="admin-form-row" style={{ marginBottom: '12px' }}>
+                <label className="admin-form-label" style={{ fontSize: '0.8rem' }}>로고 텍스트 (예: 태평프레시 CJ ENM)</label>
+                <input className="admin-form-input" value={partner.logoText || ''} onChange={e => handleUpdatePartnerInfo('logoText', e.target.value)} placeholder="미입력 시 파트너명 사용" />
+              </div>
+              
+              <div className="admin-form-row" style={{ marginBottom: 0 }}>
+                <label className="admin-form-label" style={{ fontSize: '0.8rem' }}>로고 서브텍스트 (예: 임직원 전용)</label>
+                <input className="admin-form-input" value={partner.logoSubtext || ''} onChange={e => handleUpdatePartnerInfo('logoSubtext', e.target.value)} placeholder="미입력 시 '전용몰' 사용" />
+              </div>
+            </div>
+
+            {/* 구역 B */}
+            <div style={{ padding: '16px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--slate-50)' }}>
+              <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: 'var(--slate-700)' }}>[영역 B] 메인 배너</h4>
+
+              <div className="admin-form-row" style={{ marginBottom: '12px' }}>
+                <label className="admin-form-label" style={{ fontSize: '0.8rem' }}>배너 이미지 (통이미지 사용 시)</label>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  {partner.bannerImage && (
+                    <img src={partner.bannerImage} alt="배너" style={{ height: 60, border: '1px solid var(--border)' }} />
+                  )}
+                  <label className="btn btn-secondary" style={{ cursor: 'pointer', padding: '4px 8px', fontSize: '0.8rem' }}>
+                    <ImageIcon size={12} /> 업로드
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleImageUpload(e, 'bannerImage')} />
+                  </label>
+                  {partner.bannerImage && (
+                    <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => handleUpdatePartnerInfo('bannerImage', null)}>삭제</button>
+                  )}
+                </div>
+              </div>
+
+              <div className="admin-form-row" style={{ marginBottom: '12px' }}>
+                <label className="admin-form-label" style={{ fontSize: '0.8rem' }}>배너 메인 타이틀</label>
+                <input className="admin-form-input" value={partner.bannerTitle || ''} onChange={e => handleUpdatePartnerInfo('bannerTitle', e.target.value)} placeholder="미입력 시 파트너명 사용" />
+              </div>
+
+              <div className="admin-form-row" style={{ marginBottom: 0 }}>
+                <label className="admin-form-label" style={{ fontSize: '0.8rem' }}>배너 서브 타이틀</label>
+                <input className="admin-form-input" value={partner.bannerSubtitle || ''} onChange={e => handleUpdatePartnerInfo('bannerSubtitle', e.target.value)} placeholder="미입력 시 기본 문구 사용" />
+              </div>
+            </div>
+
+            {/* 구역 C */}
+            <div style={{ padding: '16px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--slate-50)' }}>
+              <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: 'var(--slate-700)' }}>[영역 C] 주문서(장바구니) 영역</h4>
+              
+              <div className="admin-form-row" style={{ marginBottom: 0 }}>
+                <label className="admin-form-label" style={{ fontSize: '0.8rem' }}>상단 타이틀 (예: CJ ENM)</label>
+                <input className="admin-form-input" value={partner.cartTitle || ''} onChange={e => handleUpdatePartnerInfo('cartTitle', e.target.value)} placeholder="미입력 시 파트너명 사용" />
+              </div>
+            </div>
+
+            {/* 기타 설정 */}
+            <div style={{ padding: '16px', border: '1px solid var(--border)', borderRadius: '8px' }}>
+              <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: 'var(--slate-700)' }}>기타 접속 설정</h4>
+              <div className="admin-form-row" style={{ marginBottom: '12px' }}>
+                <label className="admin-form-label" style={{ fontSize: '0.8rem' }}>접속 암호(Access Code)</label>
+                <input className="admin-form-input" value={partner.accessCode || ''} onChange={e => handleUpdatePartnerInfo('accessCode', e.target.value)} placeholder="비워둘 시 누구나 접속 가능" />
+              </div>
+              <div className="admin-form-row" style={{ marginBottom: 0 }}>
+                <label className="admin-form-label" style={{ fontSize: '0.8rem' }}>접속 유지 기간</label>
+                <select className="admin-form-select" value={partner.accessDuration ?? 30} onChange={e => handleUpdatePartnerInfo('accessDuration', parseInt(e.target.value))}>
+                  <option value={0}>브라우저 종료 시 만료</option>
+                  <option value={1}>1일</option>
+                  <option value={7}>7일</option>
+                  <option value={30}>30일 (기본)</option>
+                  <option value={365}>365일 (1년)</option>
+                </select>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Right: Live Preview Panel */}
+          <div style={{ flex: '1.2', border: '2px solid var(--primary)', borderRadius: '12px', overflow: 'hidden', background: '#f1f5f9', position: 'sticky', top: '24px' }}>
+            <div style={{ background: 'var(--primary)', color: 'white', padding: '8px 16px', fontSize: '0.9rem', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between' }}>
+              <span>Live Preview</span>
+              <span style={{ fontWeight: 'normal', fontSize: '0.8rem', opacity: 0.8 }}>실제 반영 화면 미리보기</span>
+            </div>
+            
+            <div style={{ padding: '16px' }}>
+              {/* Fake Browser Window */}
+              <div style={{ background: 'white', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}>
+                
+                {/* [영역 A] GNB */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderBottom: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {partner.logoImageUrl ? (
+                      <img src={partner.logoImageUrl} alt="logo" style={{ width: 24, height: 24, borderRadius: '4px', objectFit: 'contain' }} />
+                    ) : (
+                      <div style={{ width: 24, height: 24, borderRadius: '4px', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold' }}>P</div>
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                      <span style={{ fontSize: '16px', fontWeight: '800', color: 'var(--slate-800)' }}>{partner.logoText || partner.name || '태평프레시'}</span>
+                      <span style={{ fontSize: '12px', color: 'var(--slate-500)' }}>{partner.logoSubtext || '전용몰'}</span>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--slate-500)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ width: 12, height: 12, border: '1px solid currentColor', borderRadius: '50%' }}></span> 배송조회
+                  </div>
+                </div>
+
+                {/* Content Area */}
+                <div style={{ display: 'flex', background: '#f8fafc', padding: '20px', gap: '20px', minHeight: '300px' }}>
+                  
+                  {/* Left Column (Banner + Products) */}
+                  <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    {/* [영역 B] Banner */}
+                    <div style={{ position: 'relative', width: '100%', height: '140px', borderRadius: '12px', overflow: 'hidden', background: 'linear-gradient(135deg, #2c3e50, #3498db)', display: 'flex', alignItems: 'center', padding: '0 30px' }}>
+                      {partner.bannerImage ? (
+                        <img src={partner.bannerImage} alt="banner" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }} />
+                      ) : (
+                        <div style={{ zIndex: 1, color: 'white' }}>
+                          <h1 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 8px 0', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{partner.bannerTitle || partner.name || '파트너명'}</h1>
+                          <p style={{ fontSize: '14px', margin: 0, opacity: 0.9 }}>{partner.bannerSubtitle || '임직원 및 회원 전용 특별 할인 혜택'}</p>
+                        </div>
+                      )}
+                      <div style={{ position: 'absolute', top: 12, left: 12, background: '#1e293b', color: '#f59e0b', fontSize: '10px', fontWeight: 'bold', padding: '4px 8px', borderRadius: '4px', zIndex: 2 }}>PARTNER ONLY</div>
+                    </div>
+
+                    <div>
+                      <h3 style={{ fontSize: '14px', margin: '0 0 12px 0', color: 'var(--slate-800)' }}>전용 특가 상품</h3>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div style={{ background: 'white', borderRadius: '8px', height: '100px', border: '1px solid #e2e8f0', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+                           <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', marginBottom: '4px' }}></div>
+                           <div style={{ width: '60%', height: '8px', background: '#e2e8f0', borderRadius: '4px' }}></div>
+                        </div>
+                        <div style={{ background: 'white', borderRadius: '8px', height: '100px', border: '1px solid #e2e8f0', padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+                           <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', marginBottom: '4px' }}></div>
+                           <div style={{ width: '60%', height: '8px', background: '#e2e8f0', borderRadius: '4px' }}></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column (Cart Panel) */}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
+                      {/* [영역 C] Cart Title */}
+                      <div style={{ background: 'var(--primary)', padding: '12px', color: 'white' }}>
+                        <div style={{ fontSize: '11px', fontWeight: 'bold', background: 'rgba(255,255,255,0.2)', display: 'inline-block', padding: '2px 8px', borderRadius: '12px', marginBottom: '8px' }}>
+                          {partner.cartTitle || partner.name || '파트너명'}
+                        </div>
+                        <div style={{ fontSize: '13px', fontWeight: 'bold' }}>상품을 선택해주세요</div>
+                      </div>
+                      
+                      <div style={{ padding: '30px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'var(--slate-400)', gap: '8px' }}>
+                        <ShoppingCart size={24} />
+                        <span style={{ fontSize: '10px' }}>왼쪽에서 상품을 클릭하세요</span>
+                      </div>
+
+                      <div style={{ padding: '12px', borderTop: '1px solid #e2e8f0' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '12px', fontWeight: 'bold', color: 'var(--slate-600)' }}>
+                          <span>결제 예정 금액</span>
+                          <span style={{ color: 'var(--primary)', fontSize: '14px' }}>0원</span>
+                        </div>
+                        <button style={{ width: '100%', background: '#e11d48', color: 'white', border: 'none', borderRadius: '6px', padding: '8px', fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>결제하기</button>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

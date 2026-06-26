@@ -38,7 +38,11 @@ export async function POST(req: NextRequest) {
         slug: body.slug,
         logoText: body.logoText || null,
         logoSubtext: body.logoSubtext || null,
+        logoImageUrl: body.logoImageUrl || null,
         bannerImage: body.bannerImage || null,
+        bannerTitle: body.bannerTitle || null,
+        bannerSubtitle: body.bannerSubtitle || null,
+        cartTitle: body.cartTitle || null,
         isActive: body.isActive ?? true,
       }
     });

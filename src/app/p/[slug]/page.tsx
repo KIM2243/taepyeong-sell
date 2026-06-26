@@ -205,7 +205,11 @@ export default function PartnerStorefrontPage({ params }: { params: { slug: stri
       <div className="top-header">
         <div className="top-header-inner">
           <div className="top-logo-group" onClick={() => router.push(`/p/${params.slug}`)} style={{ cursor: 'pointer' }}>
-            <div className="top-logo-icon" style={{ backgroundColor: 'var(--primary)' }}>P</div>
+            {partner.logoImageUrl ? (
+              <img src={partner.logoImageUrl} alt="logo" className="top-logo-icon-img" style={{ width: 28, height: 28, borderRadius: '4px', objectFit: 'contain' }} />
+            ) : (
+              <div className="top-logo-icon" style={{ backgroundColor: 'var(--primary)' }}>P</div>
+            )}
             <span className="top-logo-text">{partner.logoText || partner.name} <span className="top-logo-sub">{partner.logoSubtext || '전용몰'}</span></span>
           </div>
           <button className="top-tracking-btn" onClick={() => router.push('/tracking')}>
@@ -222,8 +226,8 @@ export default function PartnerStorefrontPage({ params }: { params: { slug: stri
             ) : (
               <div className="hero-banner-placeholder" style={{ background: 'linear-gradient(135deg, #2c3e50, #3498db)' }}>
                 <div className="hero-banner-text">
-                  <h1 className="hero-title">{partner.name}</h1>
-                  <p className="hero-subtitle">임직원 및 회원 전용 특별 할인 혜택</p>
+                  <h1 className="hero-title">{partner.bannerTitle || partner.name}</h1>
+                  <p className="hero-subtitle">{partner.bannerSubtitle || '임직원 및 회원 전용 특별 할인 혜택'}</p>
                 </div>
               </div>
             )}
@@ -256,7 +260,7 @@ export default function PartnerStorefrontPage({ params }: { params: { slug: stri
         {/* RIGHT: Order Panel */}
         <div className="order-panel">
           <div className="order-panel-header">
-            <div className="deal-title">{partner.name}</div>
+            <div className="deal-title">{partner.cartTitle || partner.name}</div>
             <h2>
               {cartItems.length > 0
                 ? `선택 상품 ${cartItems.length}종`

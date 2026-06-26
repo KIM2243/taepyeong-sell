@@ -165,7 +165,11 @@ model Partner {
   slug        String   @unique
   logoText    String?
   logoSubtext String?
+  logoImageUrl String?
   bannerImage String?
+  bannerTitle String?
+  bannerSubtitle String?
+  cartTitle   String?
   accessCode  String?
   accessDuration Int @default(30)
   isActive    Boolean  @default(true)
