@@ -348,6 +348,7 @@ export default function AdminProductsPage() {
                     <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageUpload} />
                     <div className="upload-icon"><Upload size={24} /></div>
                     <div className="upload-text">{uploading ? '업로드 중...' : '이미지를 선택하세요'}</div>
+                    <div className="upload-hint" style={{ fontSize: '0.75rem', color: 'var(--slate-400)', marginTop: '4px' }}>권장 사이즈: 4:3 비율 (예: 800x600)</div>
                   </label>
                 )}
               </div>

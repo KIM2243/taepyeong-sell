@@ -435,9 +435,9 @@ function ProductCard({
       className={`product-card ${isInCart ? 'selected' : ''}`}
       onClick={onClick}
     >
-      <div className="product-card-image">
+      <div className="product-card-image" style={{ position: 'relative', width: '100%', aspectRatio: '4/3', overflow: 'hidden' }}>
         {product.imageUrl ? (
-          <img src={product.imageUrl} alt={product.name} />
+          <img src={product.imageUrl} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
           <div
             style={{
@@ -453,6 +453,19 @@ function ProductCard({
             📦
           </div>
         )}
+        
+        {/* Badges Overlay */}
+        <div style={{ position: 'absolute', top: 8, left: 8, display: 'flex', flexDirection: 'column', gap: 4, zIndex: 10 }}>
+          {product.isBestSeller && (
+            <span style={{ background: '#0f172a', color: 'white', fontSize: '0.7rem', fontWeight: 800, padding: '4px 8px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>BEST</span>
+          )}
+          {product.isSale && (
+            <span style={{ background: '#e11d48', color: 'white', fontSize: '0.7rem', fontWeight: 800, padding: '4px 8px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>SALE</span>
+          )}
+          {product.isFreeShipping && (
+            <span style={{ background: '#3b82f6', color: 'white', fontSize: '0.7rem', fontWeight: 800, padding: '4px 8px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>무료배송</span>
+          )}
+        </div>
       </div>
       <div className="product-card-info">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '4px' }}>
