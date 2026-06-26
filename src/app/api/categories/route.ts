@@ -73,10 +73,20 @@ export async function DELETE(req: NextRequest) {
     const existingCategory = await prisma.category.findFirst({ where: { id, mallType: 'SELL' } });
     if (!existingCategory) return NextResponse.json({ error: '권한이 없습니다.' }, { status: 403 });
 
-    await prisma.category.delete({ where: { id } });
+    // 카테고리에 속한 상품들도 모두 삭제 (단, OrderItem이 있는 경우 Prisma 에러가 발생할 수 있음)
+    // OrderItem이 있는 상품의 삭제 정책에 따라 추후 soft-delete(isActive=false)로 변경할 수도 있습니다.
+    await prisma.$transaction([
+      prisma.product.deleteMany({ where: { categoryId: id, mallType: 'SELL' } }),
+      prisma.category.delete({ where: { id } })
+    ]);
+
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error('DELETE /api/categories error:', error);
+    // 외래키 참조 에러(예: 주문 내역이 있는 상품을 삭제하려 할 때) 처리
+    if (error.code === 'P2003') {
+      return NextResponse.json({ error: '해당 카테고리에 이미 주문된 상품이 있어 삭제할 수 없습니다.' }, { status: 400 });
+    }
     return NextResponse.json({ error: 'Failed to delete category' }, { status: 500 });
   }
 }

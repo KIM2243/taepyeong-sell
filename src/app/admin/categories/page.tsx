@@ -51,10 +51,16 @@ export default function AdminCategoriesPage() {
   const handleDeleteCategory = async (id: string) => {
     if (!confirm('카테고리를 삭제하면 해당 카테고리의 상품도 함께 처리됩니다. 삭제하시겠습니까?')) return;
     try {
-      await fetch(`/api/categories?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/categories?id=${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const errorData = await res.json();
+        alert(errorData.error || '카테고리 삭제에 실패했습니다.');
+        return;
+      }
       loadData();
     } catch (err) {
       console.error('Category delete error:', err);
+      alert('카테고리 삭제 중 오류가 발생했습니다.');
     }
   };
 
