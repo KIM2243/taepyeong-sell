@@ -10,8 +10,8 @@ export async function GET(req: NextRequest) {
     const all = searchParams.get('all'); // admin: include inactive
 
     if (id) {
-      const product = await prisma.product.findUnique({
-        where: { id },
+      const product = await prisma.product.findFirst({
+        where: { id, mallType: 'SELL' },
         include: {
           options: { orderBy: { isDefault: 'desc' } },
           category: true,
@@ -100,6 +100,9 @@ export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
 
+    const existingProduct = await prisma.product.findFirst({ where: { id: body.id, mallType: 'SELL' } });
+    if (!existingProduct) return NextResponse.json({ error: '권한이 없습니다.' }, { status: 403 });
+
     // Update product basic info
     await prisma.product.update({
       where: { id: body.id },
@@ -178,6 +181,9 @@ export async function DELETE(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
+
+    const existingProduct = await prisma.product.findFirst({ where: { id, mallType: 'SELL' } });
+    if (!existingProduct) return NextResponse.json({ error: '권한이 없습니다.' }, { status: 403 });
 
     await prisma.product.delete({ where: { id } });
     return NextResponse.json({ success: true });

@@ -280,7 +280,7 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
       {/* Option Override Modal */}
       {editingOverride && (
         <div className="modal-overlay">
-          <div className="modal" style={{ maxWidth: 600, width: '90%' }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal" style={{ maxWidth: 600, width: '90%', background: '#ffffff', padding: '24px', borderRadius: '16px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--slate-200)', paddingBottom: '16px', marginBottom: '24px' }}>
               <h3 className="modal-title" style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>단가 설정 (옵션별)</h3>
               <button onClick={() => { setEditingOverride(null); setTempOverride(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--slate-400)' }}>
@@ -294,7 +294,7 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
                 <tr>
                   <th>옵션명</th>
                   <th>글로벌 단가</th>
-                  <th>파트너 단가 (Override)</th>
+                  <th style={{ textAlign: 'center' }}>파트너 단가 (Override)</th>
                 </tr>
               </thead>
               <tbody>
@@ -307,11 +307,11 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
                       <td>{opt.name} {opt.isDefault && '(기본)'}</td>
                       <td>{opt.originalPrice.toLocaleString()}원</td>
                       <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                           <input
                             type="number"
                             className="admin-form-input"
-                            style={{ width: 120, padding: '4px 8px' }}
+                            style={{ width: 110, padding: '4px 8px', textAlign: 'right' }}
                             value={priceVal}
                             onChange={(e) => {
                               const val = e.target.value;
@@ -326,22 +326,58 @@ export default function AdminPartnerDetailPage({ params }: { params: { id: strin
 
                               if (optIndex >= 0) {
                                 newTemp.options[optIndex].customSalePrice = val;
-                                newTemp.options[optIndex].customDiscountRate = calculatedDiscount;
-                              } else {
+                                newTemp.options[optIndex].customDiscountRate = val ? calculatedDiscount : 0;
+                              } else if (val) {
                                 newTemp.options.push({ productOptionId: opt.id, customSalePrice: val, customDiscountRate: calculatedDiscount });
                               }
                               
-                              // Remove if empty
-                              newTemp.options = newTemp.options.filter((o:any) => o.customSalePrice !== '');
+                              if (!val) {
+                                newTemp.options = newTemp.options.filter((o:any) => o.productOptionId !== opt.id);
+                              } else {
+                                newTemp.options = newTemp.options.filter((o:any) => o.customSalePrice !== '');
+                              }
                               setTempOverride(newTemp);
                             }}
-                            placeholder="할인가 입력"
-                          /> 원
-                          {currentOvOpt?.customDiscountRate > 0 && (
-                            <span style={{ color: '#e11d48', fontWeight: 'bold', fontSize: '0.85rem' }}>
-                              ({currentOvOpt.customDiscountRate}% 할인)
-                            </span>
-                          )}
+                            placeholder="할인가"
+                          /> 
+                          <span style={{ color: 'var(--slate-600)', fontSize: '0.9rem', flexShrink: 0 }}>원</span>
+                          
+                          <span style={{ color: '#e11d48', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '4px', flexShrink: 0 }}>
+                            (
+                            <input
+                              type="number"
+                              className="admin-form-input"
+                              style={{ width: 50, padding: '2px 4px', textAlign: 'right', color: '#e11d48', fontWeight: 'bold', border: '1px solid #fda4af', height: '26px' }}
+                              value={currentOvOpt?.customDiscountRate !== undefined && currentOvOpt?.customDiscountRate !== null ? currentOvOpt.customDiscountRate : ''}
+                              onChange={(e) => {
+                                const rateVal = e.target.value;
+                                const newTemp = { ...tempOverride, options: [...tempOverride.options] };
+                                const optIndex = newTemp.options.findIndex((o:any) => o.productOptionId === opt.id);
+                                
+                                let calculatedPrice = '';
+                                if (rateVal && !isNaN(Number(rateVal)) && opt.originalPrice > 0) {
+                                  const rate = Math.min(100, Math.max(0, Number(rateVal)));
+                                  calculatedPrice = String(Math.round(opt.originalPrice * (1 - rate / 100)));
+                                }
+
+                                if (optIndex >= 0) {
+                                  newTemp.options[optIndex].customDiscountRate = rateVal;
+                                  if (calculatedPrice) {
+                                    newTemp.options[optIndex].customSalePrice = calculatedPrice;
+                                  }
+                                } else if (rateVal) {
+                                  newTemp.options.push({ productOptionId: opt.id, customSalePrice: calculatedPrice, customDiscountRate: rateVal });
+                                }
+                                
+                                if (!rateVal && !calculatedPrice) {
+                                  newTemp.options = newTemp.options.filter((o:any) => o.productOptionId !== opt.id);
+                                }
+                                setTempOverride(newTemp);
+                              }}
+                              placeholder="0"
+                            />
+                            % 할인)
+                          </span>
                         </div>
                       </td>
                     </tr>
@@ -384,7 +420,7 @@ function ProductSelectorModal({ allProducts, alreadySelected, onClose, onSelect 
 
   return (
     <div className="modal-overlay">
-      <div className="modal" style={{ maxWidth: 500, width: '90%' }} onClick={(e) => e.stopPropagation()}>
+      <div className="modal" style={{ maxWidth: 500, width: '90%', background: '#ffffff', padding: '24px', borderRadius: '16px' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--slate-200)', paddingBottom: '16px', marginBottom: '24px' }}>
           <h3 className="modal-title" style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>상품 추가</h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--slate-400)' }}>

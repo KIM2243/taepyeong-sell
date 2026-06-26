@@ -46,6 +46,9 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
+    const existingCategory = await prisma.category.findFirst({ where: { id: body.id, mallType: 'SELL' } });
+    if (!existingCategory) return NextResponse.json({ error: '권한이 없습니다.' }, { status: 403 });
+
     const category = await prisma.category.update({
       where: { id: body.id },
       data: {
@@ -66,6 +69,9 @@ export async function DELETE(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
+
+    const existingCategory = await prisma.category.findFirst({ where: { id, mallType: 'SELL' } });
+    if (!existingCategory) return NextResponse.json({ error: '권한이 없습니다.' }, { status: 403 });
 
     await prisma.category.delete({ where: { id } });
     return NextResponse.json({ success: true });

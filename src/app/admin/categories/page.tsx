@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Edit2, Check, X } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -13,6 +13,8 @@ export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [catName, setCatName] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
 
   useEffect(() => {
     loadData();
@@ -56,6 +58,31 @@ export default function AdminCategoriesPage() {
     }
   };
 
+  const startEditing = (cat: Category) => {
+    setEditingId(cat.id);
+    setEditingName(cat.name);
+  };
+
+  const saveEdit = async (cat: Category) => {
+    if (!editingName.trim() || editingName === cat.name) {
+      setEditingId(null);
+      return;
+    }
+    
+    try {
+      await fetch('/api/categories', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: cat.id, name: editingName, order: cat.order }),
+      });
+      setEditingId(null);
+      loadData();
+    } catch (err) {
+      console.error('Category update error:', err);
+      alert('카테고리 수정에 실패했습니다.');
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '50vh' }}>
@@ -93,12 +120,44 @@ export default function AdminCategoriesPage() {
           <tbody>
             {categories.map((cat) => (
               <tr key={cat.id}>
-                <td style={{ fontWeight: 500 }}>{cat.name}</td>
+                <td style={{ fontWeight: 500 }}>
+                  {editingId === cat.id ? (
+                    <input
+                      className="admin-form-input"
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') saveEdit(cat);
+                        if (e.key === 'Escape') setEditingId(null);
+                      }}
+                      autoFocus
+                      style={{ maxWidth: '300px', padding: '4px 8px', height: '32px' }}
+                    />
+                  ) : (
+                    cat.name
+                  )}
+                </td>
                 <td>
-                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <button className="action-btn delete" onClick={() => handleDeleteCategory(cat.id)}>
-                      <Trash2 size={14} color="#ef4444" />
-                    </button>
+                  <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', alignItems: 'center' }}>
+                    {editingId === cat.id ? (
+                      <>
+                        <button className="action-btn" onClick={() => saveEdit(cat)}>
+                          <Check size={16} color="#10b981" />
+                        </button>
+                        <button className="action-btn" onClick={() => setEditingId(null)}>
+                          <X size={16} color="#64748b" />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button className="action-btn" onClick={() => startEditing(cat)}>
+                          <Edit2 size={14} />
+                        </button>
+                        <button className="action-btn delete" onClick={() => handleDeleteCategory(cat.id)}>
+                          <Trash2 size={14} color="#ef4444" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>
