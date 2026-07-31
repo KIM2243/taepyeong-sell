@@ -15,8 +15,14 @@ export default function AdminSettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [pwMessage, setPwMessage] = useState('');
 
+  // Admin email
+  const [adminEmail, setAdminEmail] = useState('');
+  const [emailSaving, setEmailSaving] = useState(false);
+  const [emailMessage, setEmailMessage] = useState('');
+
   useEffect(() => {
     loadSettings();
+    loadAdminEmail();
   }, []);
 
   const loadSettings = async () => {
@@ -28,6 +34,16 @@ export default function AdminSettingsPage() {
       console.error('Load error:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAdminEmail = async () => {
+    try {
+      const res = await fetch('/api/admin/email');
+      const data = await res.json();
+      if (data.email) setAdminEmail(data.email);
+    } catch (err) {
+      console.error('Load admin email error:', err);
     }
   };
 
@@ -88,6 +104,32 @@ export default function AdminSettingsPage() {
       setTimeout(() => setPwMessage(''), 3000);
     } catch {
       setPwMessage('비밀번호 변경에 실패했습니다.');
+    }
+  };
+
+  const handleSaveEmail = async () => {
+    setEmailSaving(true);
+    setEmailMessage('');
+
+    try {
+      const res = await fetch('/api/admin/email', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: adminEmail }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setEmailMessage(data.error || '이메일 저장에 실패했습니다.');
+        return;
+      }
+
+      setEmailMessage('이메일이 저장되었습니다.');
+      setTimeout(() => setEmailMessage(''), 3000);
+    } catch {
+      setEmailMessage('이메일 저장에 실패했습니다.');
+    } finally {
+      setEmailSaving(false);
     }
   };
 
@@ -313,6 +355,40 @@ export default function AdminSettingsPage() {
             }}
           >
             {message}
+          </span>
+        )}
+      </div>
+
+      {/* Admin Email */}
+      <div className="admin-form-card">
+        <h3>관리자 이메일 등록</h3>
+        <p className="form-hint" style={{ marginBottom: '16px' }}>
+          비밀번호 분실 시 이메일 인증을 통해 비밀번호를 초기화할 수 있습니다. 반드시 수신 가능한 이메일을 등록해주세요.
+        </p>
+        <div className="admin-form-row">
+          <label className="admin-form-label">이메일 주소</label>
+          <input
+            className="admin-form-input"
+            type="email"
+            value={adminEmail}
+            onChange={(e) => setAdminEmail(e.target.value)}
+            placeholder="예: admin@tpfresh.com"
+            style={{ maxWidth: 400 }}
+          />
+        </div>
+
+        <button className="btn btn-secondary" onClick={handleSaveEmail} disabled={emailSaving}>
+          {emailSaving ? '저장 중...' : '이메일 저장'}
+        </button>
+        {emailMessage && (
+          <span
+            style={{
+              marginLeft: 'var(--space-3)',
+              fontSize: '0.8125rem',
+              color: emailMessage.includes('실패') ? 'var(--red-500)' : 'var(--green-600)',
+            }}
+          >
+            {emailMessage}
           </span>
         )}
       </div>

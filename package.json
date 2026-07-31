@@ -9,7 +9,8 @@
     "lint": "next lint",
     "postinstall": "prisma generate",
     "db:push": "npx prisma db push",
-    "db:seed": "node prisma/seed.js"
+    "db:seed": "node prisma/seed.js",
+    "db:reset-pw": "node prisma/reset_password.js"
   },
   "dependencies": {
     "@prisma/client": "^5.21.0",
