@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, Truck, Star, Tag, Plus, Minus, X } from 'lucide-react';
+import { ShoppingCart, Truck, Star, Tag, Plus, Minus, X, Check } from 'lucide-react';
 
 interface ProductOption {
   id: string;
@@ -29,6 +29,7 @@ export default function PartnerStorefrontPage({ params }: { params: { slug: stri
   const [authRequired, setAuthRequired] = useState(false);
   const [accessCode, setAccessCode] = useState('');
   const [authError, setAuthError] = useState('');
+  const [modalProduct, setModalProduct] = useState<any>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -69,20 +70,22 @@ export default function PartnerStorefrontPage({ params }: { params: { slug: stri
     }
   };
 
-  const handleProductClick = useCallback((product: any) => {
+  const addToCart = useCallback((product: any, option: ProductOption, quantity: number) => {
     setCartItems((prev) => {
       const existing = prev.find((item) => item.product.id === product.id);
       if (existing) {
         return prev.map((item) =>
           item.product.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, selectedOption: option, quantity: item.quantity + quantity }
             : item
         );
       }
-      const defaultOption = product?.options?.find((o: any) => o.isDefault) || product?.options?.[0];
-      if (!defaultOption) return prev;
-      return [...prev, { product, selectedOption: defaultOption, quantity: 1 }];
+      return [...prev, { product, selectedOption: option, quantity }];
     });
+  }, []);
+
+  const handleProductClick = useCallback((product: any) => {
+    setModalProduct(product);
   }, []);
 
   const handleOptionChange = useCallback((productId: string, option: ProductOption) => {
@@ -234,7 +237,7 @@ export default function PartnerStorefrontPage({ params }: { params: { slug: stri
             <div className="hero-overlay-badge" style={{ backgroundColor: '#2c3e50' }}>PARTNER ONLY</div>
           </div>
 
-          <h2 className="section-title" style={{ marginTop: 40 }}>전용 특가 상품</h2>
+          <h2 className="section-title" style={{ marginTop: 48 }}>전용 특가 상품</h2>
           
           <div className="product-grid">
             {products.length === 0 ? (
@@ -386,6 +389,19 @@ export default function PartnerStorefrontPage({ params }: { params: { slug: stri
         </div>
       </div>
       
+      {/* Product Detail Modal */}
+      {modalProduct && (
+        <ProductDetailModal
+          product={modalProduct}
+          isInCart={cartItems.some((item) => item.product.id === modalProduct.id)}
+          onClose={() => setModalProduct(null)}
+          onAddToCart={(option, quantity) => {
+            addToCart(modalProduct, option, quantity);
+            setModalProduct(null);
+          }}
+        />
+      )}
+
       {/* Footer */}
       <footer style={{
         marginTop: '60px',
@@ -466,6 +482,19 @@ function ProductCard({
             <span style={{ background: '#3b82f6', color: 'white', fontSize: '0.7rem', fontWeight: 800, padding: '4px 8px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>무료배송</span>
           )}
         </div>
+
+        {/* In-cart check overlay */}
+        {isInCart && (
+          <div style={{
+            position: 'absolute', bottom: 8, right: 8, zIndex: 10,
+            width: 28, height: 28, borderRadius: '50%',
+            background: 'var(--primary, #005b82)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(0,91,130,0.3)',
+          }}>
+            <Check size={14} color="#fff" strokeWidth={3} />
+          </div>
+        )}
       </div>
       <div className="product-card-info">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '4px' }}>
@@ -488,6 +517,145 @@ function ProductCard({
             )}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// Product Detail Modal Component
+function ProductDetailModal({
+  product,
+  isInCart,
+  onClose,
+  onAddToCart,
+}: {
+  product: any;
+  isInCart: boolean;
+  onClose: () => void;
+  onAddToCart: (option: ProductOption, quantity: number) => void;
+}) {
+  const defaultOption = product.options?.find((o: any) => o.isDefault) || product.options?.[0];
+  const [selectedOption, setSelectedOption] = useState<ProductOption>(defaultOption);
+  const [quantity, setQuantity] = useState(1);
+
+  // Escape 키로 닫기
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleEsc);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleEsc);
+      document.body.style.overflow = '';
+    };
+  }, [onClose]);
+
+  const subtotal = selectedOption.salePrice * quantity;
+
+  return (
+    <div className="pdm-overlay" onClick={onClose}>
+      <div className="pdm-container" onClick={(e) => e.stopPropagation()}>
+        <button className="pdm-close" onClick={onClose}>
+          <X size={18} />
+        </button>
+
+        <div className="pdm-body">
+          {/* Image */}
+          <div className="pdm-image-section">
+            {product.imageUrl ? (
+              <img src={product.imageUrl} alt={product.name} />
+            ) : (
+              <div className="pdm-no-image">📦</div>
+            )}
+          </div>
+
+          {/* Content */}
+          <div className="pdm-content">
+            {/* Badges */}
+            <div className="pdm-badges">
+              {product.isBestSeller && <span className="pdm-badge best">BEST</span>}
+              {product.isSale && <span className="pdm-badge sale">SALE</span>}
+              {product.isFreeShipping && <span className="pdm-badge free-ship">무료배송</span>}
+            </div>
+
+            <div className="pdm-name">{product.name}</div>
+            {product.spec && <div className="pdm-spec">{product.spec}</div>}
+
+            {/* Price */}
+            <div className="pdm-price-row">
+              <span className="pdm-price-sale">{selectedOption.salePrice.toLocaleString()}원</span>
+              {selectedOption.originalPrice !== selectedOption.salePrice && (
+                <span className="pdm-price-original">{selectedOption.originalPrice.toLocaleString()}원</span>
+              )}
+              {selectedOption.discountRate > 0 && (
+                <span className="pdm-price-discount">{selectedOption.discountRate}% 할인</span>
+              )}
+            </div>
+
+            <div className="pdm-divider" />
+
+            {/* Description */}
+            {product.description && (
+              <div className="pdm-desc-section">
+                <div className="pdm-desc-title">상품 정보</div>
+                <div
+                  className="pdm-desc-content"
+                  dangerouslySetInnerHTML={{ __html: product.description }}
+                />
+              </div>
+            )}
+
+            {/* Already in cart notice */}
+            {isInCart && (
+              <div className="pdm-in-cart-notice">
+                <Check size={14} /> 이미 장바구니에 담긴 상품입니다. 추가 시 수량이 합산됩니다.
+              </div>
+            )}
+
+            {/* Option selector */}
+            {product.options?.length > 1 && (
+              <div className="pdm-options">
+                <div className="pdm-option-label">옵션 선택</div>
+                <div className="pdm-option-list">
+                  {product.options.map((opt: ProductOption) => (
+                    <button
+                      key={opt.id}
+                      className={`pdm-option-btn ${selectedOption.id === opt.id ? 'active' : ''}`}
+                      onClick={() => setSelectedOption(opt)}
+                    >
+                      <span className="opt-name">{opt.name}</span>
+                      <span className="opt-price">{opt.salePrice.toLocaleString()}원</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Quantity */}
+            <div className="pdm-qty-row">
+              <span className="pdm-qty-label">수량</span>
+              <div className="pdm-qty-control">
+                <button className="pdm-qty-btn" onClick={() => setQuantity(Math.max(1, quantity - 1))}>
+                  <Minus size={14} />
+                </button>
+                <span className="pdm-qty-val">{quantity}</span>
+                <button className="pdm-qty-btn" onClick={() => setQuantity(quantity + 1)}>
+                  <Plus size={14} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="pdm-footer">
+          <button className="pdm-btn-close" onClick={onClose}>닫기</button>
+          <button className="pdm-btn-cart" onClick={() => onAddToCart(selectedOption, quantity)}>
+            <ShoppingCart size={18} />
+            {subtotal.toLocaleString()}원 담기
+          </button>
+        </div>
       </div>
     </div>
   );
